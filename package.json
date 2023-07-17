@@ -1,8 +1,13 @@
 {
   "dependencies": {
-    "@microsoft/microsoft-graph-client": "^3.0.5"
+    "@azure/identity": "^3.2.3",
+    "@microsoft/microsoft-graph-client": "^3.0.5",
+    "blueimp-md5": "^2.19.0",
+    "crypto-js": "^4.1.1",
+    "isomorphic-fetch": "^3.0.0"
   },
   "devDependencies": {
-    "@microsoft/microsoft-graph-types": "^2.35.0"
+    "@microsoft/microsoft-graph-types": "^2.35.0",
+    "@types/crypto-js": "^4.1.1"
   }
 }
