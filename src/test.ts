@@ -5,28 +5,25 @@
 // Portions of this code may be excerpted under MIT license
 // from SDK samples provided by Microsoft.
 
-import {Client} from '@microsoft/microsoft-graph-client';
-
-import {initializeGraphClient} from './client';
+import {ClientData, getClientData} from './settings';
 import {discoverHorseId} from './discovery';
 import {CaseData, updateCase} from "./case";
+import {initializeGraphClient} from "./graphClient";
 
-async function main() {
-    let client = initializeGraphClient();
-    // await findHorse(client, "FY2024");
-    await updateTestCases(client);
-}
-
-async function findHorse(client: Client, horseName: string) {
-    let horseId = await discoverHorseId(client, horseName);
+export async function updateHorseId(clientData: ClientData, horseName: string) {
+    if (clientData.horseId) {
+        return;
+    }
+    const horseId = await discoverHorseId(clientData, horseName);
     if (!horseId) {
         throw Error(`Failed to find a spreadsheet named ${horseName}.xlsx`)
     }
+    clientData.horseId = horseId;
     console.log(`The spreadsheet ${horseName}.xlsx has id '${horseId}'`);
 }
 
-async function updateTestCases(client: Client) {
-    let testCases: CaseData[] = [
+export async function updateTestCases(clientData: ClientData) {
+    const testCases: CaseData[] = [
         {id: 27710, pledgeDate: new Date()},
         {
             id: 35,
@@ -35,7 +32,7 @@ async function updateTestCases(client: Client) {
             pledgeAmount: 700,
             client: "Dan B.",
             clinic: "Test Clinic",
-            contact: "Sumeyye",
+            contact: "Chi Chi",
         },
         {
             id: 37,
@@ -47,8 +44,8 @@ async function updateTestCases(client: Client) {
             contact: "Chi Chi",
         },
     ]
-    for (let caseInfo of testCases) {
-        let rowInfo = await updateCase(client, caseInfo);
+    for (const caseInfo of testCases) {
+        const rowInfo = await updateCase(clientData, caseInfo);
         if (rowInfo.isNew) {
             console.log(`New case ${caseInfo.id} added to spreadsheet on row ${rowInfo.row}.`)
         } else {
@@ -57,4 +54,12 @@ async function updateTestCases(client: Client) {
     }
 }
 
-main().then(() => {});
+async function test() {
+    const clientData = getClientData();
+    clientData.client = initializeGraphClient(clientData);
+    await updateHorseId(clientData, "FY2024 Development");
+    await updateTestCases(clientData);
+}
+
+test()
+    .then(() => console.log("Tests completed with no errors"))

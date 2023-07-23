@@ -5,26 +5,23 @@
 // Portions of this code may be excerpted under MIT license
 // from SDK samples provided by Microsoft.
 
-import {devData as clientData} from './local/settings';
-
 import 'isomorphic-fetch';
 import * as azure from '@azure/identity';
 import * as authProviders from '@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials';
 import * as graph from '@microsoft/microsoft-graph-client';
 
+import {ClientData} from "./settings";
 
-export function initializeGraphClient() {
-    let clientSecretCredential = new azure.ClientSecretCredential(
+export function initializeGraphClient(clientData: ClientData) {
+    const clientSecretCredential = new azure.ClientSecretCredential(
         clientData.tenantId,
         clientData.clientId,
         clientData.clientSecret
     );
-
     const authProvider = new authProviders.TokenCredentialAuthenticationProvider(
         clientSecretCredential, {
             scopes: ['https://graph.microsoft.com/.default']
         });
-
     return graph.Client.initWithMiddleware({
         authProvider: authProvider
     });

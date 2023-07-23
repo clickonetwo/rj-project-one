@@ -10,7 +10,7 @@ import md5 from 'crypto-js/md5';
 
 import {Client} from '@microsoft/microsoft-graph-client';
 
-import {devData as clientData} from './local/settings';
+import {ClientData} from "./settings";
 
 export interface CaseData {
     id: number,
@@ -28,19 +28,19 @@ export interface RowInfo {
     isNew: boolean,
 }
 
-export async function updateCase(client: Client, caseData: CaseData) {
-    let horsePath = `/drives/${clientData.driveId}/items/${clientData.horseId}`
-    let sessionId = await openSession(client, horsePath);
-    let rowInfo = await findCase(client, horsePath, sessionId, caseData.id);
-    await writeCase(client, horsePath, sessionId, caseData, rowInfo)
-    await closeSession(client, horsePath, sessionId);
+export async function updateCase(clientData: ClientData, caseData: CaseData) {
+    const horsePath = `/drives/${clientData.driveId}/items/${clientData.horseId}`
+    const sessionId = await openSession(clientData.client!, horsePath);
+    const rowInfo = await findCase(clientData.client!, horsePath, sessionId, caseData.id);
+    await writeCase(clientData.client!, horsePath, sessionId, caseData, rowInfo)
+    await closeSession(clientData.client!, horsePath, sessionId);
     return rowInfo;
 }
 
 async function findCase(client: Client, horsePath: string, sessionId: string, caseId: number): Promise<RowInfo> {
     try {
         // First, get the filled range
-        let range = await client.api(`${horsePath}/workbook/worksheets/Cases/usedRange(valuesOnly=true)`)
+        const range = await client.api(`${horsePath}/workbook/worksheets/Cases/usedRange(valuesOnly=true)`)
             .header('workbook-session-id', sessionId)
             .select(['address', 'columnIndex', 'columnCount', 'rowIndex', 'rowCount'])
             .get()
@@ -49,14 +49,14 @@ async function findCase(client: Client, horsePath: string, sessionId: string, ca
         //
         // Note: Excel row numbers start at 1, but the returned rowIndex starts at 0
         // Since the end of the range *includes* the starting row, we don't add 1 there.
-        let opBody = {
+        const opBody = {
             lookupValue: caseId,
             lookupArray: {
                 address: `Cases!A${range.rowIndex + 1}:A${range.rowIndex + range.rowCount}`
             },
             matchType: 0,
         }
-        let found = await client.api(`${horsePath}/workbook/functions/match`)
+        const found = await client.api(`${horsePath}/workbook/functions/match`)
             .header('workbook-session-id', sessionId)
             .post(opBody);
         // console.log(found)
@@ -64,7 +64,7 @@ async function findCase(client: Client, horsePath: string, sessionId: string, ca
             console.log(`Found existing ${caseId} in cell A${found.value + 1}`)
             return {row: found.value + 1, isNew: false}
         } else {
-            let newRow = range.rowIndex + range.rowCount + 1
+            const newRow = range.rowIndex + range.rowCount + 1
             console.log(`Inserting new case ${caseId} into cell A${newRow}`)
             return {row: newRow, isNew: true}
         }
@@ -78,7 +78,7 @@ async function writeCase(client: Client, horsePath: string, sessionId: string, c
         return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`
     }
     try {
-        let rangeValues: Array<number | string | null> = [
+        const rangeValues: Array<number | string | null> = [
             caseData.id,
             caseData?.client ? caseData.client : null,
             caseData?.pledgeDate ? excelDate(caseData.pledgeDate) : null,
@@ -88,9 +88,9 @@ async function writeCase(client: Client, horsePath: string, sessionId: string, c
             caseData?.invoiceStatus ? caseData.invoiceStatus : null,
             caseData?.contact ? caseData.contact : null,
         ]
-        let rangeAddress = `A${rowInfo.row}:H${rowInfo.row}`
-        let opPath = `/workbook/worksheets/Cases/range(address='${rangeAddress}')`;
-        let update = await client.api(`${horsePath}/${opPath}`)
+        const rangeAddress = `A${rowInfo.row}:H${rowInfo.row}`
+        const opPath = `/workbook/worksheets/Cases/range(address='${rangeAddress}')`;
+        const _update = await client.api(`${horsePath}/${opPath}`)
             .header('workbook-session-id', sessionId)
             .select(['address', 'values'])
             .patch({values: [rangeValues]})
@@ -102,7 +102,7 @@ async function writeCase(client: Client, horsePath: string, sessionId: string, c
 
 async function openSession(client: Client, horsePath: string): Promise<string> {
     try {
-        let result = await client.api(`${horsePath}/workbook/createSession`)
+        const result = await client.api(`${horsePath}/workbook/createSession`)
             .post({persistChanges: true});
         if (result.id !== undefined) {
             console.log(`Created workbook session ID ${md5(result.id)}`)
@@ -117,7 +117,7 @@ async function openSession(client: Client, horsePath: string): Promise<string> {
 
 async function closeSession(client: Client, horsePath: string, sessionId: string) {
     try {
-        let result = await client.api(`${horsePath}/workbook/closeSession`)
+        const _result = await client.api(`${horsePath}/workbook/closeSession`)
             .header('workbook-session-id', sessionId)
             .post({});
         console.log(`Closed workbook session ID ${md5(sessionId)}`)
