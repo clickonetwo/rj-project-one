@@ -8,7 +8,7 @@
 import {getClientData} from "./settings";
 import {initializeGraphClient} from "./graphClient";
 import {CaseData, updateCase} from "./case";
-import express from "express";
+import express from 'express';
 
 export async function statusHandler(req: express.Request, res: express.Response) {
     res.status(200).send({ status: 'success' });

@@ -7,12 +7,14 @@
 
 import express from 'express';
 import {statusHandler, updateCaseHandler} from "./routes"
+import {authMiddleware} from "./auth";
 
 const PORT = process.env.PORT || 5001;
 
 express()
     .use(express.json())
     .use(express.urlencoded({extended: true}))
+    .use(authMiddleware)
     .get('/status', statusHandler)
     .post('/update', updateCaseHandler)
     .listen(PORT, () => console.log(`Listening on ${ PORT }`))

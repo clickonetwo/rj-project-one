@@ -9,6 +9,7 @@ import {ClientData, getClientData} from './settings';
 import {discoverHorseId} from './discovery';
 import {CaseData, updateCase} from "./case";
 import {initializeGraphClient} from "./graphClient";
+import {newSecret, tokenFromSecret, validateTokenAgainstSecret} from "./auth";
 
 export async function updateHorseId(clientData: ClientData, horseName: string) {
     if (clientData.horseId) {
@@ -54,12 +55,29 @@ export async function updateTestCases(clientData: ClientData) {
     }
 }
 
+function getToken() {
+    const clientData = getClientData();
+    const token = tokenFromSecret(clientData.totpSecret);
+    console.log(`Here is a fresh auth token: ${token}`);
+}
+
 async function test() {
     const clientData = getClientData();
     clientData.client = initializeGraphClient(clientData);
+    const secret = newSecret();
+    const token = tokenFromSecret(secret);
+    if (validateTokenAgainstSecret(secret, token)) {
+        console.log(`Token ${token} validates against secret ${secret}, as expected.`);
+    } else {
+        throw Error(`Token ${token} fails to validate against secret ${secret}`);
+    }
     await updateHorseId(clientData, "FY2024 Development");
     await updateTestCases(clientData);
 }
 
-test()
-    .then(() => console.log("Tests completed with no errors"))
+if (process.argv[2] !== 'token') {
+    test()
+        .then(() => console.log("Tests completed with no errors"));
+} else {
+    getToken();
+}
