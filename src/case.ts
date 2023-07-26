@@ -28,6 +28,16 @@ export interface RowInfo {
     isNew: boolean,
 }
 
+export function rowUrl(clientData: ClientData, rowData: RowInfo) {
+    const SITE_URL= `https://arcse.sharepoint.com/:x:/r/sites/healthline`
+    const PATH = `/Shared%20Documents/Spreadsheets/${clientData.horseName}.xlsx`
+    const QUERY_PREFIX = '?web=1&nav='
+    const row = rowData.row;
+    const navParam = `12_A${row}:H${row}_{00000000-0001-0000-0000-000000000000}`;
+    const navParamEncoded = btoa(navParam);
+    return SITE_URL + PATH + QUERY_PREFIX + navParamEncoded;
+}
+
 export async function updateCase(clientData: ClientData, caseData: CaseData) {
     const horsePath = `/drives/${clientData.driveId}/items/${clientData.horseId}`
     const sessionId = await openSession(clientData.client!, horsePath);

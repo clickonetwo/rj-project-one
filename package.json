@@ -9,7 +9,8 @@
     "prebuild": "eslint src",
     "build": "tsc",
     "start": "node dist/index.js",
-    "test": "node -r dotenv/config dist/test.js"
+    "test": "node -r dotenv/config dist/test.js",
+    "token": "node -r dotenv/config dist/test.js token"
   },
   "dependencies": {
     "@azure/identity": "^3.2.3",

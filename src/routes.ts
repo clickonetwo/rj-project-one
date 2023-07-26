@@ -7,34 +7,51 @@
 
 import {getClientData} from "./settings";
 import {initializeGraphClient} from "./graphClient";
-import {CaseData, updateCase} from "./case";
+import {CaseData, rowUrl, updateCase} from "./case";
 import express from 'express';
 
 export async function statusHandler(req: express.Request, res: express.Response) {
-    res.status(200).send({ status: 'success' });
+    res.status(200).send({status: 'success'});
 }
 
-export async function updateCaseHandler(req: express.Request, res: express.Response) {
-    const caseData: CaseData = req.body
-    if (caseData?.id) {
-        try {
-            const rowData = await update(caseData);
-            const result = rowData.isNew ?
-                `Inserted case ${caseData.id} at row ${rowData.row}` :
-                `Updated case ${caseData.id} at row ${rowData.row}`;
-            res.status(200).send({status: 'success', result: result});
-        }
-        catch (err) {
-            res.status(500).send({status: 'error', reason: err});
-        }
+export function getUpdateHandler(req: express.Request, res: express.Response) {
+    const caseData = prepareCase(req.query);
+    if (typeof caseData === 'string') {
+        res.status(400).send({status: 'error', reason: caseData});
     } else {
-        res.status(400).send({status: 'error', reason: 'Update request must specify the id field'});
+        performUpdate(res, caseData);
     }
 }
 
-async function update(caseData: CaseData) {
-    const clientData = getClientData();
-    clientData.client = initializeGraphClient(clientData);
-    return await updateCase(clientData, caseData);
+export function postUpdateHandler(req: express.Request, res: express.Response) {
+    const caseData = prepareCase(req.body);
+    if (typeof caseData === 'string') {
+        res.status(400).send({status: 'error', reason: caseData});
+    } else {
+        performUpdate(res, caseData);
+    }
 }
 
+function prepareCase(submission: object): CaseData | string {
+    if ('id' in submission) {
+        return submission as CaseData;
+    } else {
+        return `No id field found in submitted object ${submission}`;
+    }
+}
+
+function performUpdate(res: express.Response, caseData: CaseData) {
+    try {
+        const clientData = getClientData();
+        clientData.client = initializeGraphClient(clientData);
+        updateCase(clientData, caseData).then((rowData) => {
+            const result = rowData.isNew ?
+                `Inserted case ${caseData.id} at row ${rowData.row}` :
+                `Updated case ${caseData.id} at row ${rowData.row}`;
+            console.log(result);
+            res.status(200).send({status: 'success', result, url: rowUrl(clientData, rowData)});
+        });
+    } catch (err) {
+        res.status(500).send({status: 'error', reason: err});
+    }
+}

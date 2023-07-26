@@ -38,14 +38,20 @@ export function validateTokenAgainstSecret(secret: string, token: string, window
 const is_production = process.env.NODE_ENV === 'production';
 
 export function authMiddleware(req: express.Request, res: express.Response, next: express.NextFunction) {
-    const authValue = req.get("Authorization")
+    let authValue = req.get("Authorization")
     if (!authValue) {
         res.status(401).send({status: 'error', error: 'Authorization required but not provided'})
         return;
     }
+    if (!authValue.toLowerCase().startsWith("bearer ")) {
+        res.status(403).send({status: 'error', error: 'Bearer token required but not provided'})
+        return;
+    }
+    authValue = authValue.substring("bearer ".length);
     const clientData = getClientData();
     if (validateTokenAgainstSecret(clientData.totpSecret, authValue, is_production ? 1 : 1000) === null) {
-        res.status(403).send({status: 'error', error: 'Authorization failed'});
+        res.status(403).send({status: 'error', error: 'Bearer token is invalid'});
+        return;
     }
     next();
 }

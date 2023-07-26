@@ -6,7 +6,7 @@
 // from SDK samples provided by Microsoft.
 
 import express from 'express';
-import {statusHandler, updateCaseHandler} from "./routes"
+import {statusHandler, postUpdateHandler, getUpdateHandler} from "./routes"
 import {authMiddleware} from "./auth";
 
 const PORT = process.env.PORT || 5001;
@@ -16,5 +16,6 @@ express()
     .use(express.urlencoded({extended: true}))
     .use(authMiddleware)
     .get('/status', statusHandler)
-    .post('/update', updateCaseHandler)
+    .get('/update', getUpdateHandler)
+    .post('/update', postUpdateHandler)
     .listen(PORT, () => console.log(`Listening on ${ PORT }`))
