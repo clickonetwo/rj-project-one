@@ -15,12 +15,13 @@ import {ClientData} from "./settings";
 export interface CaseData {
     id: number,
     client?: string,
-    pledgeDate?: Date,
-    appointmentDate?: Date,
+    pledgeDate?: string,
+    appointmentDate?: string,
     clinic?: string,
     pledgeAmount?: number,
     invoiceStatus?: string,
     contact?: string,
+    [index: string]: string | number | undefined,
 }
 
 export interface RowInfo {
@@ -30,11 +31,12 @@ export interface RowInfo {
 
 export function rowUrl(clientData: ClientData, rowData: RowInfo) {
     const SITE_URL= `https://arcse.sharepoint.com/:x:/r/sites/healthline`
-    const PATH = `/Shared%20Documents/Spreadsheets/${clientData.horseName}.xlsx`
+    const NAME = encodeURIComponent(clientData.horseName);
+    const PATH = `/Shared%20Documents/Spreadsheets/${NAME}.xlsx`
     const QUERY_PREFIX = '?web=1&nav='
     const row = rowData.row;
-    const navParam = `12_A${row}:H${row}_{00000000-0001-0000-0000-000000000000}`;
-    const navParamEncoded = btoa(navParam);
+    const navParam = Buffer.from(`12_A${row}:H${row}_{00000000-0001-0000-0000-000000000000}`, 'utf8');
+    const navParamEncoded = navParam.toString('base64url');
     return SITE_URL + PATH + QUERY_PREFIX + navParamEncoded;
 }
 
@@ -84,15 +86,12 @@ async function findCase(client: Client, horsePath: string, sessionId: string, ca
 }
 
 async function writeCase(client: Client, horsePath: string, sessionId: string, caseData: CaseData, rowInfo: RowInfo) {
-    function excelDate(date: Date) {
-        return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`
-    }
     try {
         const rangeValues: Array<number | string | null> = [
             caseData.id,
             caseData?.client ? caseData.client : null,
-            caseData?.pledgeDate ? excelDate(caseData.pledgeDate) : null,
-            caseData?.appointmentDate ? excelDate(caseData.appointmentDate) : null,
+            caseData?.pledgeDate ? caseData.pledgeDate : null,
+            caseData?.appointmentDate ? caseData.appointmentDate : null,
             caseData?.clinic ? caseData.clinic : null,
             caseData?.pledgeAmount ? caseData.pledgeAmount : null,
             caseData?.invoiceStatus ? caseData.invoiceStatus : null,

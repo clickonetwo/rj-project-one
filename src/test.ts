@@ -25,11 +25,11 @@ export async function updateHorseId(clientData: ClientData, horseName: string) {
 
 export async function updateTestCases(clientData: ClientData) {
     const testCases: CaseData[] = [
-        {id: 27710, pledgeDate: new Date()},
+        {id: 27710, pledgeDate: '7/15/2023'},
         {
             id: 35,
-            pledgeDate: new Date(),
-            appointmentDate: new Date(),
+            pledgeDate: '7/15/2023',
+            appointmentDate: '7/22/2023',
             pledgeAmount: 700,
             client: "Dan B.",
             clinic: "Test Clinic",
@@ -37,8 +37,8 @@ export async function updateTestCases(clientData: ClientData) {
         },
         {
             id: 37,
-            pledgeDate: new Date(),
-            appointmentDate: new Date(),
+            pledgeDate: '7/16/2023',
+            appointmentDate: '7/21/2023',
             pledgeAmount: 1200,
             client: "Leanne B.",
             clinic: "Test Clinic",
