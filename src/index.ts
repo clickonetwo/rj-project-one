@@ -6,6 +6,8 @@
 // from SDK samples provided by Microsoft.
 
 import express from 'express';
+import cors from 'cors';
+
 import {statusHandler, postUpdateHandler, getUpdateHandler} from "./routes"
 import {authMiddleware} from "./auth";
 
@@ -14,6 +16,7 @@ const PORT = process.env.PORT || 5001;
 express()
     .use(express.json())
     .use(express.urlencoded({extended: true}))
+    .use(cors())
     .use(authMiddleware)
     .get('/status', statusHandler)
     .get('/update', getUpdateHandler)
