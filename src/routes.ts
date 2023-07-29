@@ -59,17 +59,19 @@ function prepareCase(submission: QueryString): CaseData | string {
     }
     if ('pledgeDate' in submission) {
         const pledgeDate = submission.pledgeDate;
-        const pattern = new RegExp('^((0?[1-9])|(1[0-2]))/((0?[1-9])|([1-2]?[0-9])|(3[01]))/20[2-9][0-9]$');
+        // const pattern = new RegExp('^((0?[1-9])|(1[0-2]))/((0?[1-9])|([1-2]?[0-9])|(3[01]))/20[2-9][0-9]$');
+        const pattern = /20[0-9][0-9]-[0-9][0-9]-[0-9][0-9]/;
         if (typeof pledgeDate !== 'string' || !pattern.test(pledgeDate)) {
-            return `pledgeDate (${JSON.stringify(pledgeDate)}) must be a current date in the form mm/dd/yyyy`;
+            return `pledgeDate (${JSON.stringify(pledgeDate)}) must be a current date in the form yyyy-mm-dd`;
         }
         caseData.pledgeDate = pledgeDate;
     }
     if ('appointmentDate' in submission) {
         const appointmentDate = submission.appointmentDate;
-        const pattern = new RegExp('^((0?[1-9])|(1[0-2]))/((0?[1-9])|([1-2]?[0-9])|(3[01]))/20[2-9][0-9]$');
+        // const pattern = new RegExp('^((0?[1-9])|(1[0-2]))/((0?[1-9])|([1-2]?[0-9])|(3[01]))/20[2-9][0-9]$');
+        const pattern = /20[0-9][0-9]-[0-9][0-9]-[0-9][0-9]/;
         if (typeof appointmentDate !== 'string' || !pattern.test(appointmentDate)) {
-            return `appointmentDate (${JSON.stringify(appointmentDate)}) must be a current date in the form mm/dd/yyyy`;
+            return `appointmentDate (${JSON.stringify(appointmentDate)}) must be a current date in the form yyyy-mm-dd`;
         }
         caseData.appointmentDate = appointmentDate;
     }
