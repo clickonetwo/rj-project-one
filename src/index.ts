@@ -9,7 +9,7 @@ import express from 'express';
 import cors from 'cors';
 
 import {statusHandler, postUpdateHandler, getUpdateHandler} from "./routes"
-import {authMiddleware} from "./auth";
+import {authMiddleware} from "./serverAuth";
 
 const PORT = process.env.PORT || 5001;
 

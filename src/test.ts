@@ -9,7 +9,7 @@ import {ClientData, getClientData} from './settings';
 import {discoverHorseId} from './discovery';
 import {CaseData, updateCase} from "./case";
 import {initializeGraphClient} from "./graphClient";
-import {newSecret, tokenFromSecret, validateTokenAgainstSecret} from "./auth";
+import {newSecret, tokenFromSecret, validateTokenAgainstSecret} from "./serverAuth";
 
 export async function updateHorseId(clientData: ClientData, horseName: string) {
     if (clientData.horseId) {

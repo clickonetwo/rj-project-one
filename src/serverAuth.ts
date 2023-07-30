@@ -5,20 +5,20 @@
 // Portions of this code may be excerpted under MIT license
 // from SDK samples provided by Microsoft.
 
-import * as OTPAuth from 'otpauth';
+import {Secret, TOTP} from 'otpauth';
 import express from 'express';
 
 import {getClientData} from "./settings";
 
 export function newSecret(): string {
-    const secret = new OTPAuth.Secret()
+    const secret = new Secret()
     return secret.base32
 }
 
-function fromSecret(secret: string): OTPAuth.TOTP {
-    return new OTPAuth.TOTP({
+function fromSecret(secret: string): TOTP {
+    return new TOTP({
         issuer: "rj-project-1",
-        digits: 8,
+        digits: 10,
         period: 30,
         secret,
     });
