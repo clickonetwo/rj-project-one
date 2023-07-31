@@ -5,8 +5,6 @@
 // Portions of this code may be excerpted under MIT license
 // from SDK samples provided by Microsoft.
 
-import 'isomorphic-fetch';
-
 import {ClientData} from './settings';
 
 interface driveItem {

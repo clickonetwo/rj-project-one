@@ -5,7 +5,6 @@
 // Portions of this code may be excerpted under MIT license
 // from SDK samples provided by Microsoft.
 
-import 'isomorphic-fetch';
 import * as azure from '@azure/identity';
 import * as authProviders from '@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials';
 import * as graph from '@microsoft/microsoft-graph-client';

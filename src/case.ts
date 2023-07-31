@@ -5,9 +5,6 @@
 // Portions of this code may be excerpted under MIT license
 // from SDK samples provided by Microsoft.
 
-import 'isomorphic-fetch';
-import md5 from 'crypto-js/md5';
-
 import {Client} from '@microsoft/microsoft-graph-client';
 
 import {ClientData} from "./settings";
@@ -52,7 +49,8 @@ export async function updateCase(clientData: ClientData, caseData: CaseData) {
 async function findCase(client: Client, horsePath: string, sessionId: string, caseId: number): Promise<RowInfo> {
     try {
         // First, get the filled range
-        const range = await client.api(`${horsePath}/workbook/worksheets/Cases/usedRange(valuesOnly=true)`)
+        const range: { rowIndex: number, rowCount: number } = await client
+            .api(`${horsePath}/workbook/worksheets/Cases/usedRange(valuesOnly=true)`)
             .header('workbook-session-id', sessionId)
             .select(['address', 'columnIndex', 'columnCount', 'rowIndex', 'rowCount'])
             .get()
@@ -114,8 +112,7 @@ async function openSession(client: Client, horsePath: string): Promise<string> {
         const result = await client.api(`${horsePath}/workbook/createSession`)
             .post({persistChanges: true});
         if (result.id !== undefined) {
-            console.log(`Created workbook session ID ${md5(result.id)}`)
-            // console.log(result)
+            console.log(`Created workbook session ID ${abbreviate(result.id)}`)
             return result.id
         }
     } catch (err) {
@@ -129,9 +126,16 @@ async function closeSession(client: Client, horsePath: string, sessionId: string
         const _result = await client.api(`${horsePath}/workbook/closeSession`)
             .header('workbook-session-id', sessionId)
             .post({});
-        console.log(`Closed workbook session ID ${md5(sessionId)}`)
+        console.log(`Closed workbook session ID ${abbreviate(sessionId)}`)
         // console.log(result)
     } catch (err) {
         throw Error(`Failed to close session: ${err}`);
     }
+}
+
+function abbreviate(id: string) {
+    if (id.length <= 33) {
+        return id;
+    }
+    return id.substring(0, 15) + '...' + id.substring(id.length - 15);
 }

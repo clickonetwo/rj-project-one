@@ -11,7 +11,7 @@ export interface ClientData {
     clientId: string,
     clientSecret: string,
     tenantId: string,
-    totpSecret: string,
+    authSecret: string,
     groupId: string,
     driveId: string,
     horseId: string,
@@ -29,14 +29,14 @@ export function getClientData(): ClientData {
         clientId: process.env?.MS_CLIENT_ID || '',
         tenantId: process.env?.MS_TENANT_ID || '',
         clientSecret: process.env?.MS_CLIENT_SECRET || '',
-        totpSecret: process.env?.MS_TOTP_SECRET || '',
+        authSecret: process.env?.MS_AUTH_SECRET || '',
         groupId: process.env?.MS_GROUP_ID || '',
         driveId: process.env?.MS_DRIVE_ID || '',
         horseId: process.env?.MS_HORSE_ID || '',
         horseName: process.env?.MS_HORSE_NAME || '',
     }
     if (!environmentData.clientId || !environmentData.tenantId ||
-        !environmentData.clientSecret || !environmentData.totpSecret) {
+        !environmentData.clientSecret || !environmentData.authSecret) {
         throw Error("No authentication data found in environment");
     }
     if (!environmentData.groupId && !environmentData.driveId) {
