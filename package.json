@@ -4,7 +4,7 @@
   },
   "main": "dist/index.js",
   "scripts": {
-    "local-arc": "node ./setEnv.js arc",
+    "local-prod": "node ./setEnv.js prod",
     "local-dev": "node ./setEnv.js dev",
     "prebuild": "eslint src",
     "build": "tsc",

@@ -10,7 +10,7 @@ import {initializeGraphClient} from "./graphClient";
 import {CaseData, rowUrl, updateCase} from "./case";
 import express from 'express';
 
-type QueryString = { [index: string]: number | string | unknown }
+export type QueryString = { [index: string]: number | string | unknown }
 
 export async function statusHandler(_req: express.Request, res: express.Response) {
     res.status(200).send({status: 'success'});
@@ -34,7 +34,7 @@ export function postUpdateHandler(req: express.Request, res: express.Response) {
     }
 }
 
-function prepareCase(submission: QueryString): CaseData | string {
+export function prepareCase(submission: QueryString): CaseData | string {
     const caseData: CaseData = {id: 0};
     if (!('id' in submission)) {
         return `No id field found in submitted object ${JSON.stringify(submission)}`;

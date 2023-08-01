@@ -9,8 +9,8 @@ let fs = require('fs');
 
 if (process.argv[2] === "dev") {
     fs.copyFileSync('local/dev.env', '.env');
-    console.log("Installed ClickOneTwo environment.");
+    console.log("Installed development environment.");
 } else {
-    fs.copyFileSync('local/arc.env', '.env')
-    console.log("Installed ARC environment.");
+    fs.copyFileSync('local/prod.env', '.env')
+    console.log("Installed production environment.");
 }

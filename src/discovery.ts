@@ -17,9 +17,6 @@ interface driveListing {
 }
 
 export async function discoverHorseId(clientData: ClientData, horseName: string) {
-    if (clientData.horseId) {
-        return clientData.horseId;
-    }
     if (!clientData.groupId && !clientData.driveId) {
         throw Error("Can't discover horseId without either a groupId or a driveId")
     }
@@ -28,12 +25,13 @@ export async function discoverHorseId(clientData: ClientData, horseName: string)
         const client = clientData.client!;
         let driveId = clientData.driveId;
         if (!driveId) {
+            console.log(`Discovering Drive ID for group ID '${clientData.groupId}'...`)
             const groupId = clientData.groupId;
             const drives: driveListing = await client.api(`/groups/${groupId}/sites/root/drives`)
                 .select(['createdDateTime', 'lastModifiedDateTime', 'name', 'id'])
                 .get();
             driveId = drives.value[0].id;
-            console.log(`Drive ID for group is '${driveId}'`)
+            console.log(`Drive ID for group is '${driveId}': Update environment settings`)
         }
         let listing: driveListing = await client.api(`/drives/${driveId}/root/children`)
             .select(['createdDateTime', 'lastModifiedDateTime', 'name', 'id'])
@@ -59,7 +57,7 @@ export async function discoverHorseId(clientData: ClientData, horseName: string)
         console.log(`Error discovering horseId: ${err}`)
     }
     if (!horseId) {
-        throw Error("Can't find id for horse named 'horseName'")
+        throw Error(`Can't find id for horse named '${horseName}'`)
     }
     return horseId
 }

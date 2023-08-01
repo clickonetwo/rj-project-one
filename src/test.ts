@@ -7,64 +7,105 @@
 
 import {ClientData, getClientData} from './settings';
 import {discoverHorseId} from './discovery';
-import {CaseData, updateCase} from "./case";
+import {updateCase} from "./case";
 import {initializeGraphClient} from "./graphClient";
+import {tokenFromContent, validateToken} from "./auth";
+import {prepareCase, QueryString} from "./routes";
 
-export async function updateHorseId(clientData: ClientData, horseName: string) {
-    if (clientData.horseId) {
-        return;
+export async function testDiscovery(clientData: ClientData) {
+    if (!clientData.horseName) {
+        throw Error(`No horse name found in environment`);
     }
-    const horseId = await discoverHorseId(clientData, horseName);
+    const horseId = await discoverHorseId(clientData, clientData.horseName);
     if (!horseId) {
-        throw Error(`Failed to find a spreadsheet named ${horseName}.xlsx`)
+        throw Error(`Failed to find a spreadsheet named '${clientData.horseName}.xlsx'`)
     }
-    clientData.horseId = horseId;
-    console.log(`The spreadsheet ${horseName}.xlsx has id '${horseId}'`);
+    console.log(`The spreadsheet ${clientData.horseName}.xlsx has id '${horseId}'`);
+    if (clientData.horseId !== horseId) {
+        console.log(`Updating client data: be sure to update the environment settings`)
+        clientData.horseId = horseId;
+    }
 }
 
-export async function updateTestCases(clientData: ClientData) {
-    const testCases: CaseData[] = [
-        {id: 27710, pledgeDate: '7/15/2023'},
+export async function testUpdate(clientData: ClientData) {
+    const testCases: QueryString[] = [
         {
-            id: 35,
-            pledgeDate: '7/15/2023',
-            appointmentDate: '7/22/2023',
-            pledgeAmount: 700,
-            client: "Dan B.",
-            clinic: "Test Clinic",
-            contact: "Chi Chi",
+            id: '34',
+            client: 'Jane D.',
+            clinic: 'PSV Only',
+            contact: 'Sara',
         },
         {
-            id: 37,
-            pledgeDate: '7/16/2023',
-            appointmentDate: '7/21/2023',
+            id: '35',
+            pledgeDate: '2023-07-15',
+            appointmentDate: '2023-07-22',
+            pledgeAmount: 700,
+            client: 'John D.',
+            clinic: 'Safe House',
+            contact: 'Laura',
+        },
+        {
+            id: Math.floor(Math.random() * 50) + 50,
+            pledgeDate: '2023-07-16',
+            appointmentDate: '2023-07-21',
             pledgeAmount: 1200,
-            client: "Leanne B.",
-            clinic: "Test Clinic",
-            contact: "Chi Chi",
+            client: 'Jill D.',
+            clinic: "Equal Justice",
+            contact: "Sanni",
         },
     ]
     for (const caseInfo of testCases) {
-        const rowInfo = await updateCase(clientData, caseInfo);
-        if (rowInfo.isNew) {
-            console.log(`New case ${caseInfo.id} added to spreadsheet on row ${rowInfo.row}.`)
-        } else {
-            console.log(`Existing case ${caseInfo.id} updated in spreadsheet on row ${rowInfo.row}.`)
+        const caseData = prepareCase(caseInfo);
+        if (typeof caseData === 'string') {
+            throw Error(caseData);
+        }
+        await updateCase(clientData, caseData);
+    }
+}
+
+async function testAuth() {
+    function makeContent(date: Date) {
+        const lastMinute = new Date(date);
+        lastMinute.setSeconds(0);
+        lastMinute.setMilliseconds(0);
+        return lastMinute.toISOString();
+    }
+    const testSecret = 'a pretty stupid secret that is reasonably long';
+    const now = new Date();
+    const seconds = now.getUTCSeconds();
+    const ms = now.getUTCMilliseconds();
+    const token = tokenFromContent(testSecret, makeContent(now));
+    if (!validateToken(testSecret, token)) {
+        throw Error('Immediate token failed to validate')
+    }
+    const delay = ((60 - seconds) * 1000) - ms
+    console.log(`Waiting ${delay/1000} seconds during token test...`);
+    await new Promise(resolve => setTimeout(resolve, delay));
+    if (!validateToken(testSecret, token)) {
+        throw Error('Delayed token failed to validate');
+    }
+}
+
+async function test(...what: string[]) {
+    if (what.length == 0) {
+        what = ['auth', 'discover', 'update'];
+    } else {
+        what = what.map((s) => s.toLowerCase());
+    }
+    if (what.includes('auth')) {
+        await testAuth();
+    }
+    if (what.includes('discover') || what.includes('update')) {
+        const clientData = getClientData();
+        clientData.client = initializeGraphClient(clientData);
+        if (what.includes('discover')) {
+            await testDiscovery(clientData);
+        }
+        if (what.includes('update')) {
+            await testUpdate(clientData);
         }
     }
 }
 
-function testAuth() {
-
-}
-
-async function test() {
-    testAuth();
-    const clientData = getClientData();
-    clientData.client = initializeGraphClient(clientData);
-    await updateHorseId(clientData, "FY2024 Development");
-    await updateTestCases(clientData);
-}
-
-test()
+test(...process.argv.slice(2))
     .then(() => console.log("Tests completed with no errors"));

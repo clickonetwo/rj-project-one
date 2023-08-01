@@ -9,7 +9,7 @@ import express from 'express';
 
 import {getClientData} from "./settings";
 
-function tokenFromContent(secret: string, content: string) {
+export function tokenFromContent(secret: string, content: string) {
     // uses the Java string hash function, cribbed from here: https://stackoverflow.com/a/8831937/558006
     function hashCode(str: string) {
         let hash = 0;
@@ -23,20 +23,24 @@ function tokenFromContent(secret: string, content: string) {
     return hashCode(`${content}|${secret}`).toString();
 }
 
-function validateToken(secret: string, token: string) {
-    console.log(`Received request at ${new Date().toISOString()}`)
-    console.log(`Received token '${token}' from request`)
+export function validateToken(secret: string, token: string) {
+    const now = new Date().toISOString()
     const dateStrings = getDateStrings();
-    console.log(`Last minute is ${dateStrings.last}`)
-    let correctToken = tokenFromContent(secret, dateStrings.last);
-    console.log(`Last token is '${correctToken}`)
+    const correctToken = tokenFromContent(secret, dateStrings.last);
     if (token === correctToken) {
         return true;
     }
-    console.log(`Prior minute is ${dateStrings.prior}`)
-    correctToken = tokenFromContent(secret, dateStrings.prior);
-    console.log(`Prior token is '${correctToken}`)
-    return token === correctToken;
+    const priorToken = tokenFromContent(secret, dateStrings.prior);
+    if (token !== priorToken) {
+        console.log(`Validation failure for request at ${now}`)
+        console.log(`Received token '${token}' from request`)
+        console.log(`Last minute is ${dateStrings.last}`)
+        console.log(`Last token is '${correctToken}'`)
+        console.log(`Prior minute is ${dateStrings.prior}`)
+        console.log(`Prior token is '${priorToken}'`);
+        return false;
+    }
+    return true;
 }
 
 function getDateStrings() {
