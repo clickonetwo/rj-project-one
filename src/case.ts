@@ -46,7 +46,20 @@ export async function updateCase(clientData: ClientData, caseData: CaseData) {
     return rowInfo;
 }
 
-async function findCase(client: Client, horsePath: string, sessionId: string, caseId: number): Promise<RowInfo> {
+export async function updateMultipleCases(clientData: ClientData, cases: CaseData[]) {
+    const horsePath = `/drives/${clientData.driveId}/items/${clientData.horseId}`
+    const sessionId = await openSession(clientData.client!, horsePath);
+    const target = cases.length;
+    for (let i = 0; i < target; i++) {
+        const caseData = cases[i];
+        const rowInfo = await findCase(clientData.client!, horsePath, sessionId, caseData.id, i+1, target);
+        await writeCase(clientData.client!, horsePath, sessionId, caseData, rowInfo)
+    }
+    await closeSession(clientData.client!, horsePath, sessionId);
+}
+
+async function findCase(client: Client, horsePath: string, sessionId: string, caseId: number,
+                        index: number = 0, target: number = 0): Promise<RowInfo> {
     try {
         // First, get the filled range
         const range: { rowIndex: number, rowCount: number } = await client
@@ -70,12 +83,13 @@ async function findCase(client: Client, horsePath: string, sessionId: string, ca
             .header('workbook-session-id', sessionId)
             .post(opBody);
         // console.log(found)
+        const prefix = index && target ? `${index}/${target}: ` : '';
         if (found.error === null) {
-            console.log(`Found existing ${caseId} in cell A${found.value + 1}`)
+            console.log(`${prefix}Found existing case ${caseId} in cell A${found.value + 1}`)
             return {row: found.value + 1, isNew: false}
         } else {
             const newRow = range.rowIndex + range.rowCount + 1
-            console.log(`Inserting new case ${caseId} into cell A${newRow}`)
+            console.log(`{prefix}Inserting new case ${caseId} into cell A${newRow}`)
             return {row: newRow, isNew: true}
         }
     } catch (err) {

@@ -47,8 +47,8 @@ export function prepareCase(submission: QueryString): CaseData | string {
         return `id (${JSON.stringify(caseNumber)} must be a positive integer`;
     }
     caseData.id = caseNumber;
-    if ('pledgeAmount' in submission) {
-        let pledgeAmount = submission.pledgeAmount;
+    let pledgeAmount = submission?.pledgeAmount;
+    if (pledgeAmount) {
         if (typeof pledgeAmount === 'string' && /^[0-9]+$/.test(pledgeAmount)) {
             pledgeAmount = parseInt(pledgeAmount);
         }
@@ -57,30 +57,34 @@ export function prepareCase(submission: QueryString): CaseData | string {
         }
         caseData.pledgeAmount = pledgeAmount;
     }
-    if ('pledgeDate' in submission) {
-        const pledgeDate = submission.pledgeDate;
-        // const pattern = new RegExp('^((0?[1-9])|(1[0-2]))/((0?[1-9])|([1-2]?[0-9])|(3[01]))/20[2-9][0-9]$');
-        const pattern = /20[0-9][0-9]-[0-9][0-9]-[0-9][0-9]/;
-        if (typeof pledgeDate !== 'string' || !pattern.test(pledgeDate)) {
-            return `pledgeDate (${JSON.stringify(pledgeDate)}) must be a current date in the form yyyy-mm-dd`;
+    const pledgeDate = submission?.pledgeDate;
+    if (pledgeDate) {
+        const pattern1 = /20[0-9][0-9]-[0-9][0-9]-[0-9][0-9]/;
+        const pattern2 = /[0-9]?[0-9]\/[0-9]?[0-9]\/20[0-9][0-9]/;
+        if (typeof pledgeDate !== 'string') {
+            return `pledgeDate (${JSON.stringify(pledgeDate)}) must be a string`;
+        }
+        if (!pattern1.test(pledgeDate) && !pattern2.test(pledgeDate)) {
+            return `pledgeDate (${JSON.stringify(pledgeDate)}) must be a date in Excel form (m/d/y or y-m-d)`;
         }
         caseData.pledgeDate = pledgeDate;
     }
-    if ('appointmentDate' in submission) {
-        const appointmentDate = submission.appointmentDate;
-        // const pattern = new RegExp('^((0?[1-9])|(1[0-2]))/((0?[1-9])|([1-2]?[0-9])|(3[01]))/20[2-9][0-9]$');
-        const pattern = /20[0-9][0-9]-[0-9][0-9]-[0-9][0-9]/;
-        if (typeof appointmentDate !== 'string' || !pattern.test(appointmentDate)) {
-            return `appointmentDate (${JSON.stringify(appointmentDate)}) must be a current date in the form yyyy-mm-dd`;
+    const appointmentDate = submission?.appointmentDate;
+    if (appointmentDate) {
+        const pattern1 = /20[0-9][0-9]-[0-9][0-9]-[0-9][0-9]/;
+        const pattern2 = /[0-9]?[0-9]\/[0-9]?[0-9]\/20[0-9][0-9]/;
+        if (typeof appointmentDate !== 'string') {
+            return `appointmentDate (${JSON.stringify(appointmentDate)}) must be a string`;
+        }
+        if (!pattern1.test(appointmentDate) && !pattern2.test(appointmentDate)) {
+            return `appointmentDate (${JSON.stringify(appointmentDate)}) must be a date in Excel form (m/d/y or y-m-d)`;
         }
         caseData.appointmentDate = appointmentDate;
     }
     for (const propName of ['client', 'clinic', 'invoiceStatus', 'contact']) {
-        if (propName in submission) {
-            const value = submission[propName];
-            if (typeof value === 'string') {
-                caseData[propName] = value;
-            }
+        const value = submission[propName];
+        if (value && typeof value === 'string') {
+            caseData[propName] = value;
         }
     }
     return caseData;
