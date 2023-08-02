@@ -89,7 +89,7 @@ async function findCase(client: Client, horsePath: string, sessionId: string, ca
             return {row: found.value + 1, isNew: false}
         } else {
             const newRow = range.rowIndex + range.rowCount + 1
-            console.log(`{prefix}Inserting new case ${caseId} into cell A${newRow}`)
+            console.log(`${prefix}Inserting new case ${caseId} into cell A${newRow}`)
             return {row: newRow, isNew: true}
         }
     } catch (err) {
