@@ -40,7 +40,7 @@ export function rowUrl(clientData: ClientData, rowData: RowInfo) {
 export async function updateCase(clientData: ClientData, caseData: CaseData) {
     const horsePath = `/drives/${clientData.driveId}/items/${clientData.horseId}`
     const sessionId = await openSession(clientData.client!, horsePath);
-    const rowInfo = await findCase(clientData.client!, horsePath, sessionId, caseData.id);
+    const rowInfo = await findCase(clientData.client!, horsePath, sessionId, caseData.id, clientData.firstRow);
     await writeCase(clientData.client!, horsePath, sessionId, caseData, rowInfo)
     await closeSession(clientData.client!, horsePath, sessionId);
     return rowInfo;
@@ -52,13 +52,13 @@ export async function updateMultipleCases(clientData: ClientData, cases: CaseDat
     const target = cases.length;
     for (let i = 0; i < target; i++) {
         const caseData = cases[i];
-        const rowInfo = await findCase(clientData.client!, horsePath, sessionId, caseData.id, i+1, target);
+        const rowInfo = await findCase(clientData.client!, horsePath, sessionId, caseData.id, clientData.firstRow, i+1, target);
         await writeCase(clientData.client!, horsePath, sessionId, caseData, rowInfo)
     }
     await closeSession(clientData.client!, horsePath, sessionId);
 }
 
-async function findCase(client: Client, horsePath: string, sessionId: string, caseId: number,
+async function findCase(client: Client, horsePath: string, sessionId: string, caseId: number, firstRow: string,
                         index: number = 0, target: number = 0): Promise<RowInfo> {
     try {
         // First, get the filled range
@@ -67,7 +67,6 @@ async function findCase(client: Client, horsePath: string, sessionId: string, ca
             .header('workbook-session-id', sessionId)
             .select(['address', 'columnIndex', 'columnCount', 'rowIndex', 'rowCount'])
             .get()
-        // console.log(range)
         // Next, search for the case in the first column of that range
         //
         // Note: Excel row numbers start at 1, but the returned rowIndex starts at 0
@@ -88,7 +87,16 @@ async function findCase(client: Client, horsePath: string, sessionId: string, ca
             console.log(`${prefix}Found existing case ${caseId} in cell A${found.value + 1}`)
             return {row: found.value + 1, isNew: false}
         } else {
-            const newRow = range.rowIndex + range.rowCount + 1
+            // Now we have to find the first blank in the first column,
+            // Do that by counting the values in that column starting with first row
+            const colRange = `Cases!A${firstRow}:A${range.rowIndex + range.rowCount}`
+            const opBody = { range: { address: colRange } }
+            const blankCount = await client.api(`${horsePath}/workbook/functions/countblank`)
+                .header('workbook-session-id', sessionId)
+                .post(opBody);
+            // console.log(blankCount)
+            const value = blankCount.error ? 0 : blankCount.value
+            const newRow = range.rowIndex + range.rowCount + 1 - value
             console.log(`${prefix}Inserting new case ${caseId} into cell A${newRow}`)
             return {row: newRow, isNew: true}
         }

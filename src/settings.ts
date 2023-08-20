@@ -16,6 +16,7 @@ export interface ClientData {
     driveId: string,
     horseId: string,
     horseName: string,
+    firstRow: string,
     client?: Client,
 }
 
@@ -34,6 +35,7 @@ export function getClientData(): ClientData {
         driveId: process.env?.MS_DRIVE_ID || '',
         horseId: process.env?.MS_HORSE_ID || '',
         horseName: process.env?.MS_HORSE_NAME || '',
+        firstRow: process.env?.MS_FIRST_CASE_ROW || '9',
     }
     if (!environmentData.clientId || !environmentData.tenantId ||
         !environmentData.clientSecret || !environmentData.authSecret) {
